@@ -29,8 +29,7 @@ spring:
     job:
       enabled: ${PROCESS_CSV_JOB_ENABLED:true}
     jdbc:
-#      initialize-schema: always
-      initialize-schema: never
+      initialize-schema: always
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
