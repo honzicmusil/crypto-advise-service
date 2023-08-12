@@ -8,6 +8,6 @@ class CryptoApplicationTests {
 
     @Test
     void contextLoads() {
+        System.out.println("Spring context has loaded successfully!");
     }
-
 }

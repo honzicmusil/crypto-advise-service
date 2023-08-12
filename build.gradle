@@ -3,6 +3,12 @@ plugins {
     id 'org.springframework.boot' version '3.1.2'
     id 'io.spring.dependency-management' version '1.1.2'
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
+    id 'com.google.cloud.tools.jib' version '3.3.1'
+    id 'io.freefair.lombok' version '8.1.0'
+    id 'jacoco'
+    id 'checkstyle'
+    id 'pmd'
+    id 'com.github.spotbugs' version '4.7.0'
 }
 
 group = 'org.epam.xm'
@@ -23,13 +29,36 @@ ext {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-batch'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-data-rest'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.1.0'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    implementation 'io.github.resilience4j:resilience4j-circuitbreaker:2.1.0'
+    testImplementation 'junit:junit:4.13.1'
+
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
+    implementation 'com.h2database:h2:2.1.214'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:junit-jupiter:1.18.3'
     testImplementation 'org.springframework.batch:spring-batch-test'
-    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc:3.0.0'
 }
+
+jib {
+    from {
+        image = 'eclipse-temurin:17.0.8_7-jdk-jammy'
+    }
+    to {
+        image = project.name
+        tags = [version]
+    }
+}
+
 
 tasks.named('test') {
     outputs.dir snippetsDir
@@ -40,3 +69,41 @@ tasks.named('asciidoctor') {
     inputs.dir snippetsDir
     dependsOn test
 }
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = false
+        html.required = false
+        csv.required = true
+    }
+}
+
+pmd {
+    toolVersion = '6.39.0'  // Set PMD version; adjust this as per your requirement
+    sourceSets = [sourceSets.main]  // By default PMD checks only main code, not test code
+    ruleSets = ["category/java/errorprone.xml"]  // Define rule sets; adjust this as per your requirement
+    ignoreFailures = true  // Whether to allow the build to continue if there are warnings
+}
+
+spotbugs {
+    toolVersion = '4.7.3'
+    sourceSets {
+        main {
+            java {
+                srcDirs = ['src/main/java']
+            }
+        }
+        test {
+            java {
+                srcDirs = ['src/test/java']
+            }
+        }
+    }  // By default, it checks the main source set
+    ignoreFailures = false  // Whether to allow the build to continue if there are warnings
+    showStackTraces = true  // To see the detailed error message
+    effort = 'max'  // Scanning effort: min, default, or max
+    reportLevel = 'high'  // Report priority: low, medium, or high
+}
+
+check.dependsOn checkstyleMain, checkstyleTest, spotbugsMain

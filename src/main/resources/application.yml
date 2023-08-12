@@ -1,1 +1,44 @@
+app:
+  files:
+    header-columns: "timestamp,symbol,price"
+    sourceDir: "src/main/resources/templates/"
+    name-pattern: "*_values.csv"
+    chunks: 10000
+  forbidden-symbols: "ETH,SOL,SHIB"
 
+spring:
+  port: 8080
+  datasource:
+    url: jdbc:h2:mem:crypto_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  batch:
+    initializer:
+      enabled: false
+    job:
+      enabled: ${PROCESS_CSV_JOB_ENABLED:true}
+    jdbc:
+#      initialize-schema: always
+      initialize-schema: never
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+resilience4j:
+  ratelimiter:
+    instances:
+      restEndpointRateLimiter:
+        limitForPeriod: 5  # Number of permits in a cycle
+        limitRefreshPeriod: 1s  # Duration of a cycle
+        timeoutDuration: 0  # Maximum waiting time for a permit
